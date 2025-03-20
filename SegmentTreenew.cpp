@@ -2,7 +2,7 @@
 using namespace std;
 class SegmentTree{
     vector<int>Tree;
-    vector<int>Lazy;
+    vector<int>lazy;
     int n;
     void BuildATree(int ss, int se, vector<int>&A,int index){
         //base case
@@ -62,13 +62,35 @@ class SegmentTree{
         
         
     }
-    
+    int QueryLazy(int ss, int se, int qs, int qe, int index){
+        if(lazy[index]!=0){
+            Tree[index]+=lazy[index];
+            if(ss != se){
+                lazy[2*index]+=lazy[index];
+                lazy[2*index+1] += lazy[index];
+            }
+            lazy[index]= 0;
+        }
+        //no over lap
+        if(ss > qe || qs > se)return INT_MAX;
+        
+        //complete over lap
+        if(qs <= ss && se <= qe){
+            return Tree[index];
+        }
+        int mid = (ss + se) / 2;
+        int left = QueryLazy(ss, mid , qs, qe, 2*index);
+        
+        int right = QueryLazy(mid + 1, se, qs, qe, 2*index+1);
+        
+        return min(left,right);
+    }
     public:
     SegmentTree(vector<int>&A){
         n = A.size(); // n 
         //0 n-1
         Tree.resize(4*n,INT_MAX);
-        Lazy.resize(4*n,0);
+        lazy.resize(4*n,0);
         BuildATree(0,n-1,A,1);
         //cout << "hello\n";
     }
@@ -80,7 +102,7 @@ class SegmentTree{
         RangeUpdateLazy(0,n-1,qs,qe,1,inc);
     }
     int QueryLazy(int qs, int qe){
-        
+        return QueryLazy(0,n-1,qs,qe,1);
     }
 };
 
@@ -93,7 +115,8 @@ int main() {
 	    cin >> A[i];
 	}
 	SegmentTree SegTree(A);
-	cout << SegTree.Query(4,6) << endl;
-	SegTree.RangeUpdateLazy(0,2,10);
+	cout << SegTree.Query(0,5)<< endl;
+	SegTree.RangeUpdateLazy(0,5,10);
+	cout << SegTree.QueryLazy(0,5) << endl;
 	return 0;
 }
